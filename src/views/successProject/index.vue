@@ -73,7 +73,7 @@ export default {
   },
   sockets: {
     'git:push': function(data) {
-       alert("p")
+       this.dialogSuccess = false
     }
   },
   created() {
