@@ -151,3 +151,17 @@
     height: 100%;
   }
 }
+
+.el-table--enable-row-hover .el-table__body tr:hover>td .el-input.is-disabled .el-input__inner,
+tr.current-row td .el-input.is-disabled .el-input__inner,
+.el-table--enable-row-hover .el-table__body tr:hover>td .el-input-group__prepend,
+tr.current-row td .el-input.is-disabled .el-input-group__prepend {
+   background-color: #fff;
+}
+
+.formItem:hover .el-icon-remove{
+  display: inline!important;
+}
+.formItem.el-form-item.is-required .el-form-item__label:before {
+  display: none;
+}

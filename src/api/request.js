@@ -16,6 +16,14 @@ export function addComponentList(data) {
   })
 }
 
+export function editComponentList(data) {
+  return request({
+    url: '/components',
+    method: 'put',
+    data
+  })
+}
+
 export function deleteComponentList(params) {
   return request({
     url: '/components',

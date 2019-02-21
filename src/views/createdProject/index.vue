@@ -9,7 +9,7 @@
 		    <el-step v-for='(item, index) in formList.list' :key='index'>
 		    	  <template slot="description">
 		    	  	<div>
-		    	  		<el-form-item :prop="'list.' + index + '.value'" :label="item.name" :key='index' :rules='item.rules'>
+		    	  		<el-form-item :prop="'list.' + index + '.value'" :label="item.message" :key='index' :rules='item.rules'>
 		    	  		  <div v-if='item.type === "input"'>
 		    	  		  	<el-input v-model="item.value" :placeholder='item.message' :disabled="index < active"></el-input>
 		    	  		  </div>
@@ -52,34 +52,7 @@ export default {
     	  active: 0,
     	  loading: false,
     	  formList: {
-    	  	list: [
-    	  	  {
-    	  	  	type: 'checkbox',
-    	  	  	name: '选择环境',
-    	  	  	choices: [
-    	  	  	  {
-	    	  		name: 'Dev环境',
-	    	  		value: 'dev'
-	    	  	  },
-	    	  	  {
-	    	  		name: '测试环境',
-	    	  		value: 'uat'
-	    	  	  },
-	    	  	  {
-	    	  		name: '预生产',
-	    	  		value: 'fac'
-	    	  	  },
-	    	  	  {
-	    	  		name: '生产环境',
-	    	  		value: 'faced'
-	    	  	  }
-    	  	  	],
-    	  	  	rules: [
-    	  	  	  { required: true, message: '请选择环境', trigger: 'blur' }
-    	  	  	],
-    	  	  	value: []
-    	  	  }
-    	  	]
+    	  	list: []
     	  },
       list: null,
       listLoading: false
@@ -96,6 +69,7 @@ export default {
     }
   },
   created() {
+  	this.$socket.emit('yo:run', this.$route.query)
   },
   sockets: {
         'yo:prompt': function(data) {
@@ -106,6 +80,7 @@ export default {
         },
         'yo:end': function(res) {
         	  Cookies.set('formList', this.formList.list)
+        	  Cookies.set('distInfo', res)
         	  this.$router.push('/example/successProject')
         }
   },
@@ -114,14 +89,10 @@ export default {
     	  this.$refs.formList.validate((valid) => {
         if (valid) {
         	  this.loading = true
-          if (this.active === 0) {
-          	this.$socket.emit('yo:run', this.$route.query)
-          } else {
-          	this.$socket.emit('yo:prompt', {
-		        question: item,
-		        answer: item.value
-		      })
-          }
+          this.$socket.emit('yo:prompt', {
+		    question: item,
+		    answer: item.value
+		  })
           this.active = this.formList.list.length
         }
       })

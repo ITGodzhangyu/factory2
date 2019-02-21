@@ -66,21 +66,24 @@ export default {
     	  formData: {
     	  	name: '',
     	  	password: '',
-    	  	git: ''
+    	  	git: '',
+    	  	distInfo: ''
     	  }
     }
   },
   sockets: {
-    'yo:git': function(data) {
+    'git:push': function(data) {
        alert("p")
     }
   },
   created() {
   	const formList = Cookies.get('formList')
+  	const distInfo = Cookies.get('distInfo')
   	if (!formList) {
   	  this.$route.push('/example/codeProject')
   	} else {
   	  this.formList = JSON.parse(formList)
+  	  this.formData.distInfo = JSON.parse(distInfo)
   	}
   },
   methods: {
@@ -90,7 +93,7 @@ export default {
   	subClick() {
   	  this.dialogSuccess = true
   	  this.dialogVisible = false
-  	  this.$socket.emit('yo:git', this.formData)
+  	  this.$socket.emit('git:push', this.formData)
   	},
     handleCopy(event) {
     	  clip(this.http, event)

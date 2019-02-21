@@ -12,6 +12,15 @@
         <el-table-column prop="name" label="微服务组件" min-width='20%' show-overflow-tooltip>
         </el-table-column>
         <el-table-column prop="url" label="地址" min-width='30%' show-overflow-tooltip>
+        	  <template slot-scope="scope">
+            <p v-for='(item, index) in scope.row.url' style='margin: 7px;' :key='index'>
+            	  <el-input placeholder="请输入内容" :value="item.value" :disabled="true" size='mini'>
+                <template slot="prepend">
+                	  {{item.name}}
+                </template>
+              </el-input>
+            </p>
+          </template>
         </el-table-column>
         <el-table-column prop="update_time" label="更新时间" min-width='20%' show-overflow-tooltip>
           <template slot-scope="scope">
@@ -36,18 +45,23 @@
 	<el-dialog
 	  title="配置组件地址"
 	  :visible.sync="editDialog"
-	  width="500px"
+	  width="600px"
 	  >
-	  <el-form :model='formData' label-width="40px" size='small'>
-	  	<el-form-item prop='dev' label='dev：'>
-	  		<el-input v-model='formData.dev' clearable></el-input>
+	  <el-form ref='formData' :model='formData' label-width="140px" size='small' label-suffix='：' style='max-height:400px;overflow:auto'>
+	  	<el-form-item prop='name' label='微服务组件' :rules='rules.name'>
+	  	  <el-input v-model='formData.name' clearable style='width:calc(100% - 20px)'></el-input>
 	  	</el-form-item>
-	  	<el-form-item prop='uat' label='uat：'>
-	  		<el-input v-model='formData.uat' clearable></el-input>
+	  	<el-form-item v-for='(item, index) in formData.url'  :prop="'url.'+ index +'.value'" :key='index' class='formItem' :rules='rules.conment'>
+	  	  <div slot="label">
+	  	  	<el-input style='width: calc(100% - 50px)' v-model='item.name'></el-input>
+	  	  	<span>：</span>
+	  	  </div>
+	  	  <el-input v-model='item.value' clearable style='width:calc(100% - 20px)'></el-input>
+	  	  <i class='el-icon-remove' style='font-size: 14px;cursor: pointer;color:#999;color:#eee;display: none' @click='deleteList2(index)'></i>
 	  	</el-form-item>
-	  	<el-form-item prop='pro' label='pro：'>
-	  		<el-input v-model='formData.pro' clearable></el-input>
-	  	</el-form-item>
+	  	<div style='text-align:center; background: #ddd;margin-left:30px;cursor:pointer' @click='addFromList2'>
+	  	  <i class='el-icon-circle-plus-outline' style='font-size: 14px;color:rgb(36, 167, 227)'></i>
+	  	</div>
 	  </el-form>
 	  <span slot="footer" class="dialog-footer">
 	  	<el-button type="primary" @click="editClick" size='mini' :loading='editLoad'>保 存</el-button>
@@ -59,13 +73,21 @@
 	  :visible.sync="addDialog"
 	  width="500px"
 	  >
-	  <el-form :model='addForm' label-width="120px" size='small'>
-	  	<el-form-item prop='name' label='微服务组件：'>
-	  	  <el-input v-model='addForm.name' clearable></el-input>
+	  <el-form ref='addForm' :model='addForm' label-width="140px" size='small' label-suffix='：' style='max-height:400px;overflow:auto'>
+	  	<el-form-item prop='name' label='微服务组件' :rules='rules.name'>
+	  	  <el-input v-model='addForm.name' clearable style='width:calc(100% - 20px)'></el-input>
 	  	</el-form-item>
-	  	<el-form-item prop='url' label='url：'>
-	  	  <el-input v-model='addForm.url' clearable></el-input>
+	  	<el-form-item v-for='(item, index) in addForm.url' :prop="'url.'+ index +'.value'" :key='index' class='formItem' :rules='rules.conment'>
+	  	  <div slot="label">
+	  	  	<el-input style='width: calc(100% - 50px)' v-model='item.name'></el-input>
+	  	  	<span>：</span>
+	  	  </div>
+	  	  <el-input v-model='item.value' clearable style='width:calc(100% - 20px)'></el-input>
+	  	  <i class='el-icon-remove' style='font-size: 14px;cursor: pointer;color:#999;display: none' @click='deleteList(index)'></i>
 	  	</el-form-item>
+	  	<div style='text-align:center; background: #ddd;margin-left:30px;cursor:pointer' @click='addFromList'>
+	  	  <i class='el-icon-circle-plus-outline' style='font-size: 14px;color:rgb(36, 167, 227)'></i>
+	  	</div>
 	  </el-form>
 	  <span slot="footer" class="dialog-footer">
 	  	<el-button type="primary" @click="addSucClick" size='mini' :loading='addLoading'>保 存</el-button>
@@ -87,7 +109,7 @@
 </template>
 
 <script>
-import { getComponentList, addComponentList, deleteComponentList } from '@/api/request'
+import { getComponentList, addComponentList, deleteComponentList, editComponentList } from '@/api/request'
 export default {
   data() {
     return {
@@ -100,15 +122,55 @@ export default {
     	  addLoading: false,
     	  tableData:[],
     	  editcheck: '',
+    	  rules:{
+    	  	name: { required: true, message: '请填写微服务组件名称', trigger: 'blur' },
+    	  	conment: [
+    	  	  { required: true, message: '请填写地址或环境名称', trigger: 'blur' },
+    	  	  { pattern: /(http|https):\/\/([\w.]+\/?)\S*/, message: '请填写有效地址', trigger: 'change' }
+    	  	]
+    	  },
+    	  urlMoment: {
+    	  	url: [
+    	  	  {
+    	  	  	name: 'dev',
+    	  	  	value: ''
+    	  	  },
+    	  	  {
+    	  	  	name: 'uat',
+    	  	  	value: ''
+    	  	  },
+    	  	  {
+    	  	  	name: 'pre',
+    	  	  	value: ''
+    	  	  },
+    	  	  {
+    	  	  	name: 'prd',
+    	  	  	value: ''
+    	  	  }
+    	    ]
+    	  },
     	  addForm: {
     	  	name: '',
-    	  	url: ''
+    	  	url: [
+    	  	  {
+    	  	  	name: 'dev',
+    	  	  	value: ''
+    	  	  },
+    	  	  {
+    	  	  	name: 'uat',
+    	  	  	value: ''
+    	  	  },
+    	  	  {
+    	  	  	name: 'pre',
+    	  	  	value: ''
+    	  	  },
+    	  	  {
+    	  	  	name: 'prd',
+    	  	  	value: ''
+    	  	  }
+    	  	]
     	  },
-    	  formData: {
-    	  	dev: '',
-    	  	uat: '',
-    	  	pro: ''
-    	  }
+    	  formData: {}
     }
   },
   created() {
@@ -118,32 +180,61 @@ export default {
   	addClick() {
   	  this.addForm = {
     	  	name: '',
-    	  	url: ''
+    	  	url: JSON.parse(JSON.stringify(this.urlMoment)).url
     	  }
   	  this.addDialog = true
   	},
+  	addFromList2() {
+  	  this.formData.url.push({
+  	  	name: '',
+  	  	value: ''
+  	  })	
+  	},
+  	addFromList() {
+  	  this.addForm.url.push({
+  	  	name: '',
+  	  	value: ''
+  	  })
+  	},
+  	deleteList(index) {
+  	  this.addForm.url.splice(index, 1)
+  	},
+  	deleteList2(index) {
+  	  this.formData.url.splice(index, 1)
+  	},
   	editClick() {
-  	  this.editLoad = true
-//	  editComponentList(this.formList).then((res) => {
-//	  	this.editDialog = false
-//	  	this.editLoad = false
-//      this.$message.success('编辑成功！')
-//   }).catch(() => {
-//   	this.editLoad = false
-//    	this.$message.error('编辑失败！')
-//    })
+  	  this.$refs.formData.validate((valid) => {
+  	  	if (valid) {
+  	  	  this.editLoad = true
+		  editComponentList(this.formData).then((res) => {
+		  	this.editDialog = false
+		  	this.editLoad = false
+		  	this.getList()
+	        this.$message.success('编辑成功！')
+	     }).catch(() => {
+	     	this.editLoad = false
+	      	this.$message.error('编辑失败！')
+	      })
+  	  	}
+  	  })
   	},
   	addSucClick() {
-  	  this.addLoading = true
-  	  addComponentList(this.addForm).then((res) => {
-  	  	this.addDialog = false
-  	  	this.addLoading = false
-        this.getList()
-        this.$message.success('添加成功！')
-      }).catch(() => {
-      	this.addLoading = false
-      	this.$message.error('添加失败！')
-      })
+  	  this.$refs.addForm.validate((valid) => {
+  	  	if (valid) {
+  	  	  this.addLoading = true
+	  	  addComponentList(this.addForm).then((res) => {
+	  	    this.addDialog = false
+	  	    this.addLoading = false
+	        this.getList()
+	        this.$message.success('添加成功！')
+	      }).catch(() => {
+	        this.addLoading = false
+	        this.$message.error('添加失败！')
+	      })	
+  	  	} else {
+  	  		
+  	  	}
+  	  })
   	},
   	deleteSucClick() {
   	  const params = {
@@ -165,6 +256,18 @@ export default {
   	getList() {
   	  this.loading = true
     	  getComponentList().then((res) => {
+        res.forEach((item) => {
+        	  const urlList = JSON.parse(item.url)
+        	  const arr = []
+	  	  for (const index in urlList) {
+	        	const obj = {
+	        	  name: index,
+	        	  value: urlList[index]
+	        	}
+	        	arr.push(obj)
+	      }
+	  	  item.url = arr
+        })
         this.tableData = res
         this.loading = false
       }).catch(() => {
@@ -176,10 +279,11 @@ export default {
     	  this.dialogSuccess = false
     },
     handleCommand(command, row) {
-    	  this.editcheck = row
+    	  this.editcheck = row  	  
       if (command === 'delete') {
         this.deleteDialog = true
       } else {
+      	this.formData = JSON.parse(JSON.stringify(row))
         this.editDialog = true
       } 
     }

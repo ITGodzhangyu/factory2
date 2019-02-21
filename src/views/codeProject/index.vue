@@ -5,10 +5,7 @@
     	  <el-radio-group v-model="checked">
         <el-radio-button closable v-for="(item,index) in groups" :label="item.id" :key="item.id+index">
         	  {{item.name}}
-        	  <i @click='removeGroups(item)' class='el-icon-close'></i>
-        </el-radio-button>
-        <el-radio-button closable label="其他">
-        	  其他
+        	  <i v-if='item.name !="其他"' @click='removeGroups(item)' class='el-icon-close'></i>
         </el-radio-button>
       </el-radio-group>
       <i class='el-icon-circle-plus-outline' @click='addDialog=true;formData.name=""' style='cursor:pointer;color: #24a7e3;'></i>
@@ -56,7 +53,7 @@
 	  		<el-input v-model='formModuleData.username' placeholder='请填写git账户名' clearable></el-input>
 	  	</el-form-item>
 	  	<el-form-item prop='password' label='密码：'>
-	  		<el-input v-model='formModuleData.password' placeholder='请填写git账户密码' clearable></el-input>
+	  		<el-input v-model='formModuleData.password' type='password' placeholder='请填写git账户密码' clearable></el-input>
 	  	</el-form-item>
 	  </el-form>
 	  <span slot="footer" class="dialog-footer">
@@ -157,7 +154,7 @@ export default {
         this.addDialog = false
       }).catch(() => {
       	this.groupsLoad = false
-      	this.$message.success('添加失败！')
+      	this.$message.error('添加失败！')
       })
     }
   }
