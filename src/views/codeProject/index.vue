@@ -157,6 +157,11 @@ export default {
       	this.$message.error('添加失败！')
       })
     }
+  },
+  watch: {
+  	checked() {
+  	  this.getModuls()
+  	}
   }
 }
 </script>
