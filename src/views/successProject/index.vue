@@ -3,12 +3,12 @@
     <div class='title'>
     	  <h2><i style='color:#67C23A;margin-right: 5px;' class='el-icon-success'></i>代码工程创建成功</h2>
     	  <div class='btn'>
-    	  	<el-button type="primary" size='mini' @click='dialogVisible=true'>生成代码工程</el-button>
+    	  	<el-button type="primary" size='mini' @click='creadCode'>生成代码工程</el-button>
     	  	<el-button type="primary" size='mini' @click='downLoad'>下载zip</el-button>
     	  </div>
     </div>
     <div class='content'>
-    	  <p v-for='(item, index) in formList' :key='index'>{{item.name}}：
+    	  <p v-for='(item, index) in formList' :key='index'>{{item.display}}：
     	  	<span v-if='item.choices && item.type == "checkbox"'>
     	  	  [<span v-for='(check,ind) in item.value' :key='ind'>{{'"'+ item.choices[ind].name +'"'}}{{ind == item.value.length - 1 ? '' : ',  '}}</span>]
     	  	</span>
@@ -23,7 +23,7 @@
 	  :visible.sync="dialogVisible"
 	  width="500px"
 	  >
-	  <el-form :model='formData' label-width="80px" size='small'>
+	  <el-form ref='formList' :model='formData' label-width="80px" size='small' :rules='rules'>
 	  	<el-form-item prop='git' label='git地址：'>
 	  		<el-input v-model='formData.git' clearable></el-input>
 	  	</el-form-item>
@@ -35,7 +35,7 @@
 	  	</el-form-item>
 	  </el-form>
 	  <span slot="footer" class="dialog-footer">
-	  	<el-button type="primary" @click="subClick" size='mini'>提 交</el-button>
+	  	<el-button type="primary" @click="subClick" size='mini' :loading='loading'>提 交</el-button>
 	  	<el-button @click="dialogVisible = false" size='mini'>取 消</el-button>
 	  </span>
 	</el-dialog>
@@ -45,7 +45,7 @@
 	  width="500px"
 	  >
 	  <p class='dialog_content'><i style='color:#67C23A;margin-right: 5px;' class='el-icon-success'></i>生成代码工程成功</p>
-	  <p>{{http}}</p>
+	  <p>{{formData.git}}</p>
 	  <span slot="footer" class="dialog-footer">
 	  	<el-button type="primary" icon="document" @click='handleCopy' size='mini'>复制链接</el-button>
 	  </span>
@@ -62,22 +62,36 @@ export default {
     	  dialogVisible: false,
     	  dialogSuccess: false,
     	  formList: {},
-    	  http: 'Http:asadawefa/a/d/asf//afa.d',
+    	  loading: false,
     	  formData: {
     	  	name: '',
     	  	password: '',
     	  	git: '',
     	  	distInfo: ''
+    	  },
+    	  rules: {
+    	  	git: [
+    	  	  { required: true, message: '请填写git地址', trigger: 'blur' },
+    	  	  { pattern: /(http|https):\/\/([\w.]+\/?)\S*/, message: '请填写有效地址', trigger: 'change' }
+    	  	],
+    	  	name: { required: true, message: '请填写用户名', trigger: 'blur' },
+    	  	password: { required: true, message: '请填写密码', trigger: 'blur' }
     	  }
     }
   },
   sockets: {
-    'git:push': function(data) {
-       this.dialogSuccess = false
+    'end:push': function(data) {
+    	   this.loading = false
+    	   if (data.result) {
+    	   	 this.dialogSuccess = true
+  	     this.dialogVisible = false
+    	   } else {
+    	   	 this.$message.error(data.message)
+    	   }
     }
   },
-  created() {
-  	const formList = Cookies.get('formList')
+  mounted() {
+  	const formList = localStorage.getItem('formList')
   	const distInfo = Cookies.get('distInfo')
   	if (!formList) {
   	  this.$route.push('/example/codeProject')
@@ -90,10 +104,19 @@ export default {
   	downLoad() {
   	  window.location.href = process.env.SOCKET_API + '/dist/' + this.formList.distId + '/' + this.formList.distName
   	},
+  	creadCode() {
+  	  this.dialogVisible = true
+  	  this.$nextTick(() => {
+		 this.$refs.formList.resetFields()
+	  })
+  	},
   	subClick() {
-  	  this.dialogSuccess = true
-  	  this.dialogVisible = false
-  	  this.$socket.emit('git:push', this.formData)
+  	  this.$refs.formList.validate((valid) => {
+        if (valid) {
+        	  this.loading = true
+        	  this.$socket.emit('git:push', this.formData)
+        }
+     })
   	},
     handleCopy(event) {
     	  clip(this.http, event)

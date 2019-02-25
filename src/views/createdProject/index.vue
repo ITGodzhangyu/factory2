@@ -13,15 +13,15 @@
 		    	  		  <div v-if='item.type === "input"'>
 		    	  		  	<el-input v-model="item.value" :placeholder='item.message' :disabled="index < active"></el-input>
 		    	  		  </div>
-		    	  		  <div v-if='item.type === "checkbox"'>
+		    	  		  <div v-else-if='item.type === "checkbox"'>
 		    	  		  	<el-checkbox-group v-model="item.value" :disabled="index < active">
 					      <el-checkbox v-for="check in item.choices" :label="check.value" :key="check.value">{{check.name}}</el-checkbox>
 					    </el-checkbox-group>
 		    	  		  </div>
-		    	  		  <div v-if='item.type === "textarea"'>
+		    	  		  <div v-else-if='item.type === "textarea"'>
 		    	  		  	<el-input type='textarea' :rows="3" v-model="item.value" :disabled="index < active"></el-input>
 		    	  		  </div>	
-		    	  		  <div v-if='item.type === "list"'>
+		    	  		  <div v-else-if='item.type === "list"'>
 		    	  		  	<el-radio-group v-model="item.value">
 		    	  		  		<el-radio v-for='rad in item.choices' :label="rad.value" :key='rad.value'>{{rad.name}}</el-radio>
 		    	  		  	</el-radio-group>
@@ -79,13 +79,13 @@ export default {
         	  this.formList.list.push(data)
         },
         'yo:end': function(res) {
-        	  Cookies.set('formList', this.formList.list)
+        	  localStorage.setItem('formList', JSON.stringify(this.formList.list))
         	  Cookies.set('distInfo', res)
         	  this.$router.push('/example/successProject')
         }
   },
   methods: {
-    submitForm(item) { 
+    submitForm(item) {
     	  this.$refs.formList.validate((valid) => {
         if (valid) {
         	  this.loading = true

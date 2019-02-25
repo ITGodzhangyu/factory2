@@ -185,7 +185,7 @@ export default {
 	  margin-left: -15px;
 	  height: 300px;
 	  .el-card {
-	  	width: calc(25% - 15px);
+	  	width: calc(25% - 17px);
 	  	height: 130px;
 	  	display: inline-block;
 	  	margin-left: 15px;
