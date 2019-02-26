@@ -83,8 +83,10 @@ export default {
     'end:push': function(data) {
     	   this.loading = false
     	   if (data.result) {
-    	   	 this.dialogSuccess = true
   	     this.dialogVisible = false
+  	     this.$nextTick(() => {
+		   this.dialogSuccess = true
+	     })
     	   } else {
     	   	 this.$message.error(data.message)
     	   }
@@ -102,7 +104,7 @@ export default {
   },
   methods: {
   	downLoad() {
-  	  window.location.href = process.env.SOCKET_API + '/dist/' + this.formList.distId + '/' + this.formList.distName
+  	  window.location.href = process.env.SOCKET_API + '/dist/' + this.formData.distInfo.distId + '/' + this.formData.distInfo.distName
   	},
   	creadCode() {
   	  this.dialogVisible = true
