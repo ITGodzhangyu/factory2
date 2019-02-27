@@ -14,7 +14,8 @@
 	  <el-card v-for="item in list" :key="item.id">
 		  <h3>{{item.name}}</h3>
 		  <p>被调用：{{item.use_times}}</p>
-		  <el-button type="primary" size='mini' @click='goLink(item)'>创建代码工程</el-button>
+		  <el-button v-if='item.status == 2' type="primary" size='mini' @click='goLink(item)'>创建代码工程</el-button>
+		  <el-button v-else type="primary" size='mini' :loading='loading'>代码拉取中</el-button>
 	  </el-card>
 	  <el-card>
 		 <div class='addCard' @click='addCard'>
@@ -74,6 +75,7 @@ export default {
     	  addModuleDialog: false,
     	  groupsLoad: false,
     	  moduleLoad: false,
+    	  loading: true,
     	  formData: {
     	  	name: ''
     	  },
